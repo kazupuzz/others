@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>絵文字神経衰弱</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --card-bg: #ffffff;
+            --card-back: #4a90e2;
+            --text-color: #333;
+            --primary-color: #4a90e2;
+            --success-color: #2ecc71;
+            --card-size: 80px;
+            --gap-size: 15px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'M PLUS Rounded 1c', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: var(--primary-color);
+        }
+
+        .game-info {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+            font-size: 1.2rem;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 40px;
+            justify-content: center;
+            align-items: start;
+            perspective: 1000px;
+        }
+
+        .group-column {
+            display: flex;
+            flex-direction: column;
+            gap: var(--gap-size);
+            align-items: center;
+        }
+
+        .group-title {
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .card {
+            width: var(--card-size);
+            height: var(--card-size);
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+            cursor: pointer;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .card:hover {
+            box-shadow: 0 8px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+            cursor: default;
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            /* Adjusted for text */
+            font-weight: bold;
+            text-align: center;
+            word-break: break-all;
+            padding: 5px;
+            border-radius: 10px;
+            user-select: none;
+        }
+
+        .card-front {
+            background-color: var(--card-bg);
+            transform: rotateY(180deg);
+            color: #333;
+        }
+
+        .card-back {
+            background-color: var(--card-back);
+            background-image: linear-gradient(45deg, #4a90e2 25%, #5da9ff 25%, #5da9ff 50%, #4a90e2 50%, #4a90e2 75%, #5da9ff 75%, #5da9ff 100%);
+            background-size: 20px 20px;
+        }
+
+        .swap-highlight {
+            box-shadow: 0 0 15px 5px rgba(255, 0, 0, 0.7) !important;
+            transform: scale(1.1);
+            z-index: 10;
+            border: 2px solid red;
+        }
+
+        .reset-btn {
+            margin-top: 30px;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            font-family: inherit;
+        }
+
+        .reset-btn:hover {
+            background-color: #357abd;
+        }
+
+        .message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            z-index: 100;
+            display: none;
+            animation: popIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .message h2 {
+            font-size: 2.5rem;
+            color: var(--success-color);
+            margin-bottom: 10px;
+        }
+
+        .message p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 90;
+            display: none;
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes celebrate {
+            0% {
+                transform: rotateY(180deg) scale(1);
+            }
+
+            50% {
+                transform: rotateY(180deg) scale(1.1);
+            }
+
+            100% {
+                transform: rotateY(180deg) scale(1);
+            }
+        }
+
+        @media (max-width: 500px) {
+            :root {
+                --card-size: 60px;
+                --gap-size: 8px;
+            }
+
+            .game-container {
+                gap: 15px;
+            }
+        }
+
+        #stations-grid,
+        #municipalities-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--gap-size);
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>駅名・市区町村 神経衰弱</h1>
+
+    <div class="game-info">
+        <span>ペア: <span id="pairs-count">0</span>/5</span>
+        <span>手数: <span id="moves-count">0</span></span>
+    </div>
+
+    <div class="game-container">
+        <div class="group-column">
+            <div class="group-title">駅名</div>
+            <div id="stations-grid"></div>
+        </div>
+        <div class="group-column">
+            <div class="group-title">所在地</div>
+            <div id="municipalities-grid"></div>
+        </div>
+    </div>
+
+    <button class="reset-btn" id="reset-btn">リセット</button>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="message" id="success-message">
+        <h2>クリア！🎉</h2>
+        <p>おめでとうございます！</p>
+        <button class="reset-btn" id="play-again-btn">もう一度遊ぶ</button>
+    </div>
+
+    <script>
+        // Data for memory game: Stations and their municipalities
+        const pairItems = [
+            { id: 'pair1', first: '品川駅', second: '東京都港区' },       // Shinagawa - Minato match
+            { id: 'pair2', first: '目黒駅', second: '東京都品川区' },   // Meguro - Shinagawa match
+            { id: 'pair3', first: '豊島駅', second: '愛知県田原市' }, // Toshima - Tahara match
+            { id: 'pair4', '足立駅': '足立駅', second: '岡山県新見市' },  // Adachi - Niimi match
+            { id: 'pair5', first: '中野駅', second: '群馬県みどり市' }   // Nakano - Midori match (User request)
+        ];
+
+        // Correction for typo in pairItems definition above (key mismatch)
+        // Re-defining cleanly for code clarity
+        const pairsData = [
+            { id: 'pair1', station: '品川駅', municipality: '東京都港区' },
+            { id: 'pair2', station: '目黒駅', municipality: '東京都品川区' },
+            { id: 'pair3', station: '豊島駅', municipality: '愛知県田原市' },
+            { id: 'pair4', station: '足立駅', municipality: '岡山県新見市' },
+            { id: 'pair5', station: '中野駅', municipality: '群馬県みどり市' }
+        ];
+
+        let selectedStation = null;
+        let selectedMunicipality = null;
+        let matchedPairs = 0;
+        let moves = 0;
+        let isLocked = false;
+
+        const stationsGrid = document.getElementById('stations-grid');
+        const municipalitiesGrid = document.getElementById('municipalities-grid');
+        const pairsCountEl = document.getElementById('pairs-count');
+        const movesCountEl = document.getElementById('moves-count');
+        const resetBtn = document.getElementById('reset-btn');
+        const playAgainBtn = document.getElementById('play-again-btn');
+        const successMessage = document.getElementById('success-message');
+        const overlay = document.getElementById('overlay');
+
+        function initGame() {
+            // Reset state
+            selectedStation = null;
+            selectedMunicipality = null;
+            matchedPairs = 0;
+            moves = 0;
+            isLocked = false;
+
+            // Update UI
+            pairsCountEl.textContent = '0';
+            movesCountEl.textContent = '0';
+            stationsGrid.innerHTML = '';
+            municipalitiesGrid.innerHTML = '';
+            successMessage.style.display = 'none';
+            overlay.style.display = 'none';
+
+            // Create separate arrays for stations and municipalities
+            const stationCards = pairsData.map(item => ({ content: item.station, matchId: item.id, type: 'station' }));
+
+
+            // Generate dummy cards
+            const dummyData = [
+                { content: '東京都目黒区', matchId: 'dummy-1', type: 'municipality' },
+                { content: '東京都足立区', matchId: 'dummy-2', type: 'municipality' },
+                { content: '東京都豊島区', matchId: 'dummy-3', type: 'municipality' }
+            ];
+
+            const municipalityCards = [
+                ...pairsData.map(item => ({ content: item.municipality, matchId: item.id, type: 'municipality' })),
+                ...dummyData
+            ];
+
+            // Shuffle them independently
+            shuffle(stationCards);
+            shuffle(municipalityCards);
+
+            // Render Stations
+            stationCards.forEach(item => {
+                const stationCard = createCard(item.content, item.matchId, item.type);
+                stationsGrid.appendChild(stationCard);
+            });
+
+            // Render Municipalities
+            municipalityCards.forEach(item => {
+                const muniCard = createCard(item.content, item.matchId, item.type);
+                municipalitiesGrid.appendChild(muniCard);
+            });
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createCard(content, matchId, type) {
+            const card = document.createElement('div');
+            card.classList.add('card');
+            card.dataset.matchId = matchId;
+            card.dataset.type = type;
+
+            const frontFace = document.createElement('div');
+            frontFace.classList.add('card-face', 'card-front');
+            frontFace.textContent = content;
+
+            const backFace = document.createElement('div');
+            backFace.classList.add('card-face', 'card-back');
+
+            card.appendChild(frontFace);
+            card.appendChild(backFace);
+
+            card.addEventListener('click', flipCard);
+
+            return card;
+        }
+
+        function flipCard() {
+            if (isLocked) return;
+            // Allow re-clicking same card? No, usually not. But we might want to toggle?
+            // Simple rule: if already flipped (and matched), ignore.
+            if (this.classList.contains('flipped') && !this.classList.contains('selected')) return;
+            // If it is the currently selected card, maybe do nothing or allow toggling off?
+            // Let's implement strictly: click to select.
+
+            const type = this.dataset.type;
+
+            if (type === 'station') {
+                if (selectedStation) return; // Block if any station is already selected
+
+                this.classList.add('flipped', 'selected');
+                selectedStation = this;
+
+            } else if (type === 'municipality') {
+                if (selectedMunicipality) return; // Block if any municipality is already selected
+
+                this.classList.add('flipped', 'selected');
+                selectedMunicipality = this;
+            }
+
+            // Check if both are selected
+            if (selectedStation && selectedMunicipality) {
+                moves++;
+                movesCountEl.textContent = moves;
+                checkForMatch();
+            }
+        }
+
+        function checkForMatch() {
+            isLocked = true;
+
+            const stationId = selectedStation.dataset.matchId;
+            const muniId = selectedMunicipality.dataset.matchId;
+
+            const isMatch = stationId === muniId;
+
+            if (isMatch) {
+                disableCards();
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            // Remove click listeners via clone or standard remove (using flags here)
+            // Actually, we process matched state visually
+
+            selectedStation.classList.remove('selected');
+            selectedStation.classList.add('matched');
+            selectedMunicipality.classList.remove('selected');
+            selectedMunicipality.classList.add('matched');
+
+            // Celebration effect
+            [selectedStation, selectedMunicipality].forEach(card => {
+                const front = card.querySelector('.card-front');
+                front.style.backgroundColor = '#d4edda';
+                front.style.animation = 'celebrate 0.5s ease';
+                // Remove pointer events to prevent clicking again
+                card.style.pointerEvents = 'none';
+            });
+
+            selectedStation = null;
+            selectedMunicipality = null;
+            matchedPairs++;
+            pairsCountEl.textContent = matchedPairs;
+            isLocked = false;
+
+            if (matchedPairs === pairsData.length) {
+                setTimeout(showSuccessMessage, 500);
+            }
+        }
+
+        function unflipCards() {
+            setTimeout(() => {
+                selectedStation.classList.remove('flipped', 'selected');
+                selectedMunicipality.classList.remove('flipped', 'selected');
+
+                selectedStation = null;
+                selectedMunicipality = null;
+                isLocked = false;
+            }, 1000);
+        }
+
+        function showSuccessMessage() {
+            successMessage.style.display = 'block';
+            overlay.style.display = 'block';
+        }
+
+        resetBtn.addEventListener('click', initGame);
+        playAgainBtn.addEventListener('click', initGame);
+
+        // Start the game
+        initGame();
+    </script>
+</body>
+
+</html>
