@@ -100,11 +100,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.8rem;
-            /* Adjusted for text */
+            font-size: 1rem;
+            /* Increased font size */
             font-weight: bold;
             text-align: center;
-            word-break: break-all;
+            line-height: 1.2;
             padding: 5px;
             border-radius: 10px;
             user-select: none;
@@ -271,11 +271,11 @@
         // Correction for typo in pairItems definition above (key mismatch)
         // Re-defining cleanly for code clarity
         const pairsData = [
-            { id: 'pair1', station: '品川駅', municipality: '東京都港区' },
-            { id: 'pair2', station: '目黒駅', municipality: '東京都品川区' },
-            { id: 'pair3', station: '豊島駅', municipality: '愛知県田原市' },
-            { id: 'pair4', station: '足立駅', municipality: '岡山県新見市' },
-            { id: 'pair5', station: '中野駅', municipality: '群馬県みどり市' }
+            { id: 'pair1', station: '品川駅', municipality: '東京都<br>港区' },
+            { id: 'pair2', station: '目黒駅', municipality: '東京都<br>品川区' },
+            { id: 'pair3', station: '豊島駅', municipality: '愛知県<br>田原市' },
+            { id: 'pair4', station: '足立駅', municipality: '岡山県<br>新見市' },
+            { id: 'pair5', station: '中野駅', municipality: '群馬県<br>みどり市' }
         ];
 
         let selectedStation = null;
@@ -315,9 +315,9 @@
 
             // Generate dummy cards
             const dummyData = [
-                { content: '東京都目黒区', matchId: 'dummy-1', type: 'municipality' },
-                { content: '東京都足立区', matchId: 'dummy-2', type: 'municipality' },
-                { content: '東京都豊島区', matchId: 'dummy-3', type: 'municipality' }
+                { content: '東京都<br>目黒区', matchId: 'dummy-1', type: 'municipality' },
+                { content: '東京都<br>足立区', matchId: 'dummy-2', type: 'municipality' },
+                { content: '東京都<br>豊島区', matchId: 'dummy-3', type: 'municipality' }
             ];
 
             const municipalityCards = [
@@ -357,7 +357,7 @@
 
             const frontFace = document.createElement('div');
             frontFace.classList.add('card-face', 'card-front');
-            frontFace.textContent = content;
+            frontFace.innerHTML = content;
 
             const backFace = document.createElement('div');
             backFace.classList.add('card-face', 'card-back');
